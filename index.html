@@ -239,16 +239,6 @@
         }
       }
 
-      function clearInput() {
-        document.getElementById("input").value = "";
-        showNotification("Input cleared", "success");
-      }
-
-      function clearOutput() {
-        document.getElementById("output").value = "";
-        showNotification("Output cleared", "success");
-      }
-
       function showNotification(message, type) {
         const notification = document.getElementById("notification");
         notification.textContent = message;
