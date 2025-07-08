@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>V1 to V2 Character Converter</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      .container {
+        background-color: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      h2 {
+        color: #333;
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      .section {
+        margin-bottom: 30px;
+      }
+      .section h3 {
+        color: #555;
+        margin-bottom: 10px;
+      }
+      textarea {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #ddd;
+        border-radius: 4px;
+        font-family: monospace;
+        font-size: 14px;
+        resize: vertical;
+      }
+      .button-group {
+        display: flex;
+        gap: 10px;
+        margin: 15px 0;
+      }
+      button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.3s;
+      }
+      .primary-btn {
+        background-color: #007bff;
+        color: white;
+      }
+      .primary-btn:hover {
+        background-color: #0056b3;
+      }
+      .secondary-btn {
+        background-color: #6c757d;
+        color: white;
+      }
+      .secondary-btn:hover {
+        background-color: #545b62;
+      }
+      .success-btn {
+        background-color: #28a745;
+        color: white;
+      }
+      .success-btn:hover {
+        background-color: #1e7e34;
+      }
+      .convert-section {
+        text-align: center;
+        margin: 30px 0;
+      }
+      .convert-section button {
+        padding: 15px 30px;
+        font-size: 16px;
+        font-weight: bold;
+      }
+      .notification {
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 4px;
+        display: none;
+      }
+      .notification.success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      .notification.error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>V1 to V2 Character Converter</h2>
+
+      <div class="section">
+        <h3>V1 Character JSON (Input)</h3>
+        <textarea
+          id="input"
+          rows="20"
+          placeholder="Paste v1 JSON here"
+        ></textarea>
+      </div>
+
+      <div class="convert-section">
+        <button class="primary-btn" onclick="convert()">Convert V1 → V2</button>
+      </div>
+
+      <div class="section">
+        <h3>V2 Character JSON (Output)</h3>
+        <textarea
+          id="output"
+          rows="20"
+          placeholder="V2 JSON will appear here"
+          readonly
+        ></textarea>
+        <div class="button-group">
+          <button class="success-btn" onclick="copyToClipboard('output')">
+            Copy
+          </button>
+          <button
+            class="success-btn"
+            onclick="downloadJSON('output', 'v2-character.json')"
+          >
+            Download
+          </button>
+        </div>
+      </div>
+
+      <div id="notification" class="notification"></div>
+    </div>
+
+    <script>
+      function convert() {
+        try {
+          const inputText = document.getElementById("input").value.trim();
+          if (!inputText) {
+            showNotification("Please enter V1 JSON data first", "error");
+            return;
+          }
+
+          const v1 = JSON.parse(inputText);
+
+          // Combine bio and lore
+          const bio = (v1.bio || []).concat(v1.lore || []);
+
+          // Transform messageExamples
+          const messageExamples = (v1.messageExamples || []).map((thread) =>
+            thread.map((msg) => ({
+              name: msg.user,
+              content: msg.content,
+            }))
+          );
+
+          // Build v2 character
+          const v2 = {
+            name: v1.name,
+            plugins: [],
+            settings: v1.settings,
+            system: v1.system,
+            bio: bio,
+            topics: v1.topics,
+            messageExamples: messageExamples,
+            postExamples: v1.postExamples,
+            style: v1.style,
+          };
+
+          document.getElementById("output").value = JSON.stringify(v2, null, 2);
+          showNotification("Successfully converted V1 to V2!", "success");
+        } catch (e) {
+          showNotification(
+            "Invalid JSON or error in conversion: " + e.message,
+            "error"
+          );
+        }
+      }
+
+      function copyToClipboard(elementId) {
+        const element = document.getElementById(elementId);
+        const text = element.value;
+
+        if (!text.trim()) {
+          showNotification("Nothing to copy", "error");
+          return;
+        }
+
+        navigator.clipboard
+          .writeText(text)
+          .then(() => {
+            const type = elementId === "input" ? "Input" : "Output";
+            showNotification(`${type} copied to clipboard!`, "success");
+          })
+          .catch((err) => {
+            // Fallback for older browsers
+            element.select();
+            document.execCommand("copy");
+            const type = elementId === "input" ? "Input" : "Output";
+            showNotification(`${type} copied to clipboard!`, "success");
+          });
+      }
+
+      function downloadJSON(elementId, filename) {
+        const element = document.getElementById(elementId);
+        const text = element.value;
+
+        if (!text.trim()) {
+          showNotification("Nothing to download", "error");
+          return;
+        }
+
+        try {
+          // Validate JSON before downloading
+          JSON.parse(text);
+
+          const blob = new Blob([text], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+
+          showNotification(`Downloaded ${filename}`, "success");
+        } catch (e) {
+          showNotification("Invalid JSON - cannot download", "error");
+        }
+      }
+
+      function clearInput() {
+        document.getElementById("input").value = "";
+        showNotification("Input cleared", "success");
+      }
+
+      function clearOutput() {
+        document.getElementById("output").value = "";
+        showNotification("Output cleared", "success");
+      }
+
+      function showNotification(message, type) {
+        const notification = document.getElementById("notification");
+        notification.textContent = message;
+        notification.className = `notification ${type}`;
+        notification.style.display = "block";
+
+        setTimeout(() => {
+          notification.style.display = "none";
+        }, 3000);
+      }
+    </script>
+  </body>
+</html>
