@@ -189,6 +189,11 @@ function matchPlugins(v1Character) {
 async function convert() {
   try {
     const inputText = document.getElementById("input").value.trim();
+    const outputActions = document.getElementById("outputActions");
+
+    // Hide buttons initially
+    outputActions.classList.remove("show");
+
     if (!inputText) {
       showNotification("Please enter V1 JSON data first", "error");
       return;
@@ -251,7 +256,17 @@ async function convert() {
       "Successfully converted V1 to V2!" + pluginMessage,
       "success"
     );
+
+    // Show buttons after successful conversion
+    outputActions.classList.add("show");
   } catch (e) {
+    // Hide buttons on error
+    const outputActions = document.getElementById("outputActions");
+    const outputField = document.getElementById("output");
+
+    outputActions.classList.remove("show");
+    outputField.value = ""; // Clear output on error
+
     showNotification(
       "Invalid JSON or error in conversion: " + e.message,
       "error"
@@ -326,4 +341,16 @@ function showNotification(message, type) {
 // Initialize plugins on page load
 document.addEventListener("DOMContentLoaded", function () {
   fetchPlugins();
+
+  // Add event listener to hide output actions when input is cleared
+  const inputField = document.getElementById("input");
+  const outputActions = document.getElementById("outputActions");
+  const outputField = document.getElementById("output");
+
+  inputField.addEventListener("input", function () {
+    if (!inputField.value.trim()) {
+      outputActions.classList.remove("show");
+      outputField.value = "";
+    }
+  });
 });
