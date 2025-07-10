@@ -46,6 +46,7 @@ textarea {
   resize: vertical;
   flex-grow: 1;
   min-height: 400px;
+  box-sizing: border-box;
 }
 
 .action-bar {
