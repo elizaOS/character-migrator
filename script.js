@@ -92,6 +92,7 @@ let availablePlugins = [];
 // Hardcoded mappings for providers/clients that don't match plugin names directly
 const PROVIDER_PLUGIN_MAPPINGS = {
   google: "@elizaos/plugin-google-genai",
+  llama_local: "@elizaos/plugin-local-ai",
   // Add more mappings as needed
 };
 
@@ -167,19 +168,32 @@ function matchPlugins(v1Character) {
     typeof v1Character.modelProvider === "string"
   ) {
     const providerLower = v1Character.modelProvider.toLowerCase();
+    let providerMatched = false;
 
     // Check hardcoded mappings first
     if (PROVIDER_PLUGIN_MAPPINGS[providerLower]) {
       const mappedPlugin = PROVIDER_PLUGIN_MAPPINGS[providerLower];
       if (availablePlugins.includes(mappedPlugin)) {
         matchedPlugins.add(mappedPlugin);
+        providerMatched = true;
       }
     } else {
       // Fall back to direct mapping
       const pluginName = `@elizaos/plugin-${providerLower}`;
       if (availablePlugins.includes(pluginName)) {
         matchedPlugins.add(pluginName);
+        providerMatched = true;
       }
+    }
+
+    // If no provider matched, default to OpenAI
+    if (!providerMatched) {
+      matchedPlugins.add("@elizaos/plugin-openai");
+    }
+  } else {
+    // If no modelProvider specified, default to OpenAI
+    if (availablePlugins.includes("@elizaos/plugin-openai")) {
+      matchedPlugins.add("@elizaos/plugin-openai");
     }
   }
 
