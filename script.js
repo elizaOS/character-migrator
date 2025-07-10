@@ -216,10 +216,19 @@ async function convert() {
     // Match plugins based on V1 clients/modelProvider
     const matchedPlugins = matchPlugins(v1);
 
+    // Always include these essential plugins if they're not already present
+    const essentialPlugins = [
+      "@elizaos/plugin-sql",
+      "@elizaos/plugin-bootstrap",
+    ];
+    const finalPlugins = [
+      ...new Set([...matchedPlugins, ...essentialPlugins]),
+    ].sort();
+
     // Build v2 character
     const v2 = {
       name: v1.name,
-      plugins: matchedPlugins,
+      plugins: finalPlugins,
       settings: v1.settings,
       system: v1.system,
       bio: bio,
