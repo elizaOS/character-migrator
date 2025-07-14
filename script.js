@@ -92,7 +92,7 @@ let availablePlugins = [];
 // Hardcoded mappings for providers/clients that don't match plugin names directly
 const PROVIDER_PLUGIN_MAPPINGS = {
   google: "@elizaos/plugin-google-genai",
-  llama_local: "@elizaos/plugin-local-ai",
+  llama_local: "@elizaos/plugin-ollama",
   // Add more mappings as needed
 };
 
